@@ -32,15 +32,15 @@
     document.body.addEventListener('keyup', onkeyup);
 
     //Respond when a key goes down
-    function onkeydown(event){
-      keys[event.key] = true;
-      console.log(event.key)
-    }
+    // function onkeydown(event){
+    //   keys[event.key] = true;
+    //   console.log(event.key)
+    // }
 
     //Respond when a key goes up
-    function onkeyup(event){
-      keys[event.key] = false;
-    }
+    // function onkeyup(event){
+    //   keys[event.key] = false;
+    // }
 
     //Set up the game
     function main() {
@@ -48,35 +48,35 @@
       socket = io();
 
       //Ask for our object information
-      socket.emit("join", "");
+      // socket.emit("join", "");
 
       //Listen for our object information
-      socket.on("joinaccept", function (msg) {
-        console.log("Join accept " + JSON.stringify(msg));
-        myObject = msg;
-        objects.push(myObject);
-      });
+      // socket.on("joinaccept", function (msg) {
+      //   console.log("Join accept " + JSON.stringify(msg));
+      //   myObject = msg;
+      //   objects.push(myObject);
+      // });
 
       //Listen for updates about other objects
-      socket.on('update', obj=>{
-        console.log("Update " + JSON.stringify(obj))
+      // socket.on('update', obj=>{
+      //   console.log("Update " + JSON.stringify(obj))
 
-        //Add the object if we don't know about it
-        if(!objects.some(i=>i.id == obj.id)){
-          objects.push(obj);
-        }
-        //Otherwise update the object
-        else{
-          let object = objects.find(i=>i.id == obj.id);
-          object.x = obj.x;
-          object.y = obj.y;
-        }
-      })
+      //   //Add the object if we don't know about it
+      //   if(!objects.some(i=>i.id == obj.id)){
+      //     objects.push(obj);
+      //   }
+      //   //Otherwise update the object
+      //   else{
+      //     let object = objects.find(i=>i.id == obj.id);
+      //     object.x = obj.x;
+      //     object.y = obj.y;
+      //   }
+      // })
 
       //Only keep objects that are still in the game
-      socket.on('valid', arr=>{
-        objects = objects.filter(i=>arr.includes(i.id));
-      })
+      // socket.on('valid', arr=>{
+      //   objects = objects.filter(i=>arr.includes(i.id));
+      // })
 
       //Start the game loop
       requestAnimationFrame(tick);
@@ -111,19 +111,19 @@
       canvas.height = window.innerHeight;
 
       //Check if any of the arrow keys are down
-      if(keys['ArrowUp']){move(0,-1,delta);}
-      if(keys['ArrowDown']){move(0,1,delta);}
-      if(keys['ArrowLeft']){move(-1,0,delta);}
-      if(keys['ArrowRight']){move(1,0,delta);}
+      // if(keys['ArrowUp']){move(0,-1,delta);}
+      // if(keys['ArrowDown']){move(0,1,delta);}
+      // if(keys['ArrowLeft']){move(-1,0,delta);}
+      // if(keys['ArrowRight']){move(1,0,delta);}
 
 
     }
 
     //Move our object based on a direction and an amount of elapsed time
     function move(x,y,delta){
-      myObject.x += x * speed*delta;
-      myObject.y += y * speed*delta;
-      socket.emit('move', myObject);
+      // myObject.x += x * speed*delta;
+      // myObject.y += y * speed*delta;
+      // socket.emit('move', myObject);
 
     }
 
@@ -137,17 +137,17 @@
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       //Draw each object to the canvas
-      for(let object of objects){
-        ctx.fillStyle = "black"
-        //Draw our object as red
-        if(object == myObject)
-          ctx.fillStyle = "red"
+      // for(let object of objects){
+      //   ctx.fillStyle = "black"
+      //   //Draw our object as red
+      //   if(object == myObject)
+      //     ctx.fillStyle = "red"
 
-        //Circles have to draw as "arc" paths.
-        ctx.beginPath();
-        ctx.arc(object.x, object.y, 10, 0, Math.PI*2);
-        ctx.fill();
-      }
+      //   //Circles have to draw as "arc" paths.
+      //   ctx.beginPath();
+      //   ctx.arc(object.x, object.y, 10, 0, Math.PI*2);
+      //   ctx.fill();
+      // }
 
     }
 
