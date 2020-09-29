@@ -1,0 +1,160 @@
+<!doctype html>
+<html>
+<head>
+  <title>Multiplayer Socket.io Example</title>
+  <style>
+    /* Let the canvas fill the whole screen */
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <!-- The canvas we will render to -->
+  <canvas id="canv"></canvas>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+
+  <script>
+
+    let objects = []; //The list of objects in the game
+    let myObject = null;  //The object we own
+    let keys = []; //The list of keyboard keys that are down
+    let speed = 100;  //The speed (in pixels/second) that our player can move
+    let socket = null;  //The websocket we are using
+    let lastTimestamp = 0;  //The last moment that we rendered a frame (in milliseconds)
+
+    //Listen for key events from the keyboard
+    document.body.addEventListener('keydown', onkeydown);
+    document.body.addEventListener('keyup', onkeyup);
+
+    //Respond when a key goes down
+    function onkeydown(event){
+      keys[event.key] = true;
+      console.log(event.key)
+    }
+
+    //Respond when a key goes up
+    function onkeyup(event){
+      keys[event.key] = false;
+    }
+
+    //Set up the game
+    function main() {
+      //Connect to the socket.io server
+      socket = io();
+
+      //Ask for our object information
+      socket.emit("join", "");
+
+      //Listen for our object information
+      socket.on("joinaccept", function (msg) {
+        console.log("Join accept " + JSON.stringify(msg));
+        myObject = msg;
+        objects.push(myObject);
+      });
+
+      //Listen for updates about other objects
+      socket.on('update', obj=>{
+        console.log("Update " + JSON.stringify(obj))
+
+        //Add the object if we don't know about it
+        if(!objects.some(i=>i.id == obj.id)){
+          objects.push(obj);
+        }
+        //Otherwise update the object
+        else{
+          let object = objects.find(i=>i.id == obj.id);
+          object.x = obj.x;
+          object.y = obj.y;
+        }
+      })
+
+      //Only keep objects that are still in the game
+      socket.on('valid', arr=>{
+        objects = objects.filter(i=>arr.includes(i.id));
+      })
+
+      //Start the game loop
+      requestAnimationFrame(tick);
+    }
+
+    //Update our model and render to the screen
+    function tick(timestamp) {
+      //Get the elapsed time since we last drew to the screen
+      let delta = timestamp - lastTimestamp;
+      delta /=1000;//convert to fractions of a second
+
+      //Update our model
+      update(delta);
+
+      //Render
+      drawCanvas();
+      
+      //Update the stored timestamp
+      lastTimestamp = timestamp
+
+      //Wait for the browser to be ready to render again
+      requestAnimationFrame(tick);
+    }
+
+    function update(delta) {
+
+      //Update the size of the canvas in case the window has resized.
+      canvas = document.getElementById("canv");
+      canvas.style.width = window.innerWidth + "px"
+      canvas.style.height = window.innerHeight + "px"
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      //Check if any of the arrow keys are down
+      if(keys['ArrowUp']){move(0,-1,delta);}
+      if(keys['ArrowDown']){move(0,1,delta);}
+      if(keys['ArrowLeft']){move(-1,0,delta);}
+      if(keys['ArrowRight']){move(1,0,delta);}
+
+
+    }
+
+    //Move our object based on a direction and an amount of elapsed time
+    function move(x,y,delta){
+      myObject.x += x * speed*delta;
+      myObject.y += y * speed*delta;
+      socket.emit('move', myObject);
+
+    }
+
+    //Render to the screen
+    function drawCanvas() {
+      //Grad the 2D context of the canvas
+      var ctx = canvas.getContext("2d");
+
+      //Clear the canvas
+      ctx.fillStyle = "white";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      //Draw each object to the canvas
+      for(let object of objects){
+        ctx.fillStyle = "black"
+        //Draw our object as red
+        if(object == myObject)
+          ctx.fillStyle = "red"
+
+        //Circles have to draw as "arc" paths.
+        ctx.beginPath();
+        ctx.arc(object.x, object.y, 10, 0, Math.PI*2);
+        ctx.fill();
+      }
+
+    }
+
+    //Call our main method
+    main();
+
+  </script>
+</body>
+
+</html>
